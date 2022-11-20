@@ -40,7 +40,6 @@ import { LibrariesService } from './services/libraries.service';
     LibraryMatModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    LibraryMatModule,
     BooksModule
   ],
   providers: [

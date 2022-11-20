@@ -5,6 +5,6 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://aka-library-api.azurewebsites.net/',
+  apiUrl: 'http://localhost:51721/',
   apiPath: 'api'
 };

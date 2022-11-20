@@ -52,8 +52,17 @@ export class BookDetailsComponent implements OnInit {
    * @memberof BookDetailsComponent
    */
   isMaximumNumberOfBooksSignedOut(): boolean {
-    // TODO: Implement check
-    return false;
+    return this.numBooksSignedOut >= 2;
+  }
+
+  /**
+   * Check if the available copies are greater than user requested copies count
+   *
+   * @returns {boolean}
+   * @memberof BookDetailsComponent
+   */
+  public isEnoughCopiesAvailable(): boolean {
+    return this.numBooksAvailable > this.numOfThisBookSignedOutByUser;
   }
 
   checkOutBook() {
@@ -89,7 +98,7 @@ export class BookDetailsComponent implements OnInit {
    * @param {number} bookId
    * @memberof BookDetailsComponent
    */
-  getBookDetails(libraryId: number, bookId: number) {
+  getBookDetails(libraryId: number, bookId: number): void {
     forkJoin([
       this.books.getBook(libraryId, bookId),
       this.books.getNumberOfAvailableBookCopies(libraryId, bookId),
@@ -115,7 +124,9 @@ export class BookDetailsComponent implements OnInit {
       catchError(err => {
         return throwError(err);
       })
-    );
+    ).subscribe((bookData: Book) => {
+      this.book = bookData;
+    })
   }
 
 }

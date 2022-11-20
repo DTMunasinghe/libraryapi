@@ -40,7 +40,7 @@ export class BookListComponent implements OnInit, AfterViewInit {
       ])
         .pipe(
           map(([books, availableBooks]) => {
-            return unionBy(lmap(availableBooks, (book: Book) => ({ ...book, isAvailable: true })), books, 'bookId');
+            return unionBy(lmap(availableBooks, (book: Book, index: number) => ({ ...book, isAvailable: availableBooks[index].isAvailable})), books, 'bookId');
           })
         )
         .subscribe((books: Book []) => {

@@ -15,7 +15,7 @@
             [routerLink]="['members', getAuthUser().memberId]" routerLinkActive="active">Profile</button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" *ngIf="isLoggedIn$ | async" mat-button [routerLink]="['checked-out']"
+          <button class="nav-link" *ngIf="isLoggedIn$ | async" mat-button [routerLink]="['checked-out/list']"
             routerLinkActive="active">Checked Out</button>
         </li>
         <li class="nav-item">

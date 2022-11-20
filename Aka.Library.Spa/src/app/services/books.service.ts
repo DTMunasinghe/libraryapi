@@ -4,11 +4,11 @@ import { Book } from '../shared/book';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { SignedOutBook } from '../shared/signed-out-book';
-import { map } from 'lodash';
 import { GoogleBooksMetadata } from '../shared/google-books-metadata';
 import { Observable } from 'rxjs/internal/Observable';
 import { throwError } from 'rxjs/internal/observable/throwError';
 import { of } from 'rxjs/internal/observable/of';
+import { map } from 'rxjs/operators';
 
 @Injectable()
 export class BooksService {
@@ -25,7 +25,7 @@ export class BooksService {
     const url = `${this.apiUrl}${libraryId}/books`;
     return this.http.get<LibraryBook[]>(url)
       .pipe(
-        map(items => items.map(item => item.book))
+        map((items: LibraryBook[]) => items.map(item => item.book))
       );
   }
 
@@ -67,8 +67,8 @@ export class BooksService {
    * @memberof BooksService
    */
   getNumberOfAvailableBookCopies(libraryId: number, bookId: number): Observable<number> {
-    // TODO: Add implementation
-    return throwError('Not Implemented');
+    const url: string = `${this.apiUrl}${libraryId}/books/${bookId}/available-book-count`;
+    return this.http.get<number>(url);
   }
 
   checkOutBook(libraryId: number, bookId: number, memberId: number): Observable<SignedOutBook> {
@@ -90,12 +90,32 @@ export class BooksService {
    * @memberof BooksService
    */
   getBookMetaData(isbn: string): Observable<GoogleBooksMetadata> {
-    // TODO: Add implementation
-    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${this.googleBooksAPIKey}`;
+    const sanitizeIsbn: string = isbn.replace('-', '');
 
-    // return this.http.get(url);
-    return throwError('Funtion not implemented');
+    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${sanitizeIsbn}&key=${this.googleBooksAPIKey}`;
 
+    return this.http.get(url)
+      .pipe(
+        map(metadata => {
+          const bookMetdata: GoogleBooksMetadata =  {
+            description: '',
+            authors: [],
+            imageLinks: {
+              thumbnail: '',
+              smallThumbnail: ''
+            }
+          };
+
+          if (metadata['items'] && metadata['items'].length > 0) {
+            bookMetdata.description = metadata['items'][0]['volumeInfo']['description'];
+            bookMetdata.authors = metadata['items'][0]['volumeInfo']['authors'];
+            bookMetdata.imageLinks.thumbnail = metadata['items'][0]['volumeInfo']['imageLinks']['thumbnail'];
+            bookMetdata.imageLinks.smallThumbnail = metadata['items'][0]['volumeInfo']['imageLinks']['smallThumbnail'];
+          }
+          
+          return bookMetdata;
+        })
+      );
   }
 
 }

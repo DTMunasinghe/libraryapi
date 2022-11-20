@@ -28,6 +28,7 @@ export class AuthService {
       .pipe(
         tap(res => {
           this.isAuthenticated = res !== null;
+          this.loggedIn.next(this.isAuthenticated);
           this.currentMember = res;
         })
       );
@@ -35,6 +36,7 @@ export class AuthService {
 
   logout(): void {
     this.isAuthenticated = false;
+    this.loggedIn.next(this.isAuthenticated);
     this.currentMember = null;
   }
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Aka.Library.Data;
 using Aka.Library.Data.Entities;
+using Aka.Library.Data.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,7 +32,7 @@ namespace Aka.Library.Api.Controllers
         /// <param name="libraryId">Library Id</param>
         /// <returns>Returns all available books</returns>
         [HttpGet("available")]
-        public IEnumerable<BookTitle> GetAvailableBooks(int libraryId)
+        public IEnumerable<Book> GetAvailableBooks(int libraryId)
         {
             var books = from bt in db.BookTitle
                         join lb in db.LibraryBook on bt.BookId equals lb.BookId into libraryBook
@@ -50,7 +51,14 @@ namespace Aka.Library.Api.Controllers
                             on lb.LibraryBookSid equals signs.LibraryBookSId into booksSignOutsOuter
                         from signs in booksSignOutsOuter.DefaultIfEmpty()
                         where lb.LibraryId == libraryId && lb.TotalPurchasedByLibrary > (signs.Count ?? 0)
-                        select bt;
+                        select new Book
+                        {
+                            BookId = bt.BookId,
+                            Title = bt.Title,
+                            Isbn = bt.Isbn,
+                            DateOfPublication = bt.DateOfPublication,
+                            IsAvailable = (lb.TotalPurchasedByLibrary - (signs.Count ?? 0)) > 0,
+                        };
 
             return books;
         }

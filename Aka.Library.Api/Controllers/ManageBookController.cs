@@ -7,6 +7,7 @@ using Aka.Library.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 namespace Aka.Library.Api.Controllers
 {
@@ -22,9 +23,26 @@ namespace Aka.Library.Api.Controllers
         [HttpGet]
         public Task<BookTitle> GetBook(int libraryId, int bookId)
         {
-            var book = db.LibraryBook.Where(l => l.LibraryId == libraryId && l.BookId == bookId).Include(b => b.Book).Select(lb=> lb.Book).FirstOrDefaultAsync();
+            var book = db.LibraryBook.Where(l => l.LibraryId == libraryId && l.BookId == bookId).Include(b => b.Book).Select(lb => lb.Book).FirstOrDefaultAsync();
 
             return book;
+        }
+
+        [HttpGet("available-book-count")]
+        public Task<int> GetNumberOfAvailableBookCount(int libraryId, int bookId)
+        {
+            var bookSid = db.LibraryBook
+                .FirstOrDefault(@lb => @lb.LibraryId == libraryId && @lb.BookId == bookId);
+
+            int totalNoOfPurchasedCopiesByLibrary = bookSid.TotalPurchasedByLibrary;
+
+            var signedOutBooks = db.BookSignedOut
+                .Where(@lb => @lb.LibraryBook.BookId == bookId && @lb.LibraryBook.LibraryId == libraryId && @lb.WhenReturned == null)
+                .ToList();
+
+            int signedOutBooksCount = signedOutBooks.Count; 
+
+            return Task.FromResult(totalNoOfPurchasedCopiesByLibrary - signedOutBooksCount);
         }
 
         /// <summary>
@@ -37,6 +55,22 @@ namespace Aka.Library.Api.Controllers
         [HttpPost("signout/{memberId:int}")]
         public BookSignedOut Post(int libraryId, int bookId, int memberId)
         {
+            var signedOutBooksCount = db.BookSignedOut
+                .Where(m => m.MemberId == memberId && m.WhenReturned == null)
+                .ToList().Count;
+
+            int maximumNoOfBooksUserCanSignOut = 2;
+
+            // 1) Validation for maximum no of books user can sign out (Here I throw Forbidden status code but
+            //    we can give a proper validation error message).
+            // 2) Can implement a validation for "user cannot sign out more copies than are available of that
+            //    book" same like this.
+            // 3) Need to move this validation into separate class
+            if (!(signedOutBooksCount < maximumNoOfBooksUserCanSignOut))
+            {
+                throw new StatusCodeException(HttpStatusCode.Forbidden);
+            }
+
             var bookSid = db.LibraryBook.FirstOrDefault(@lb => @lb.LibraryId == libraryId && @lb.BookId == bookId);
 
             if (bookSid == null)

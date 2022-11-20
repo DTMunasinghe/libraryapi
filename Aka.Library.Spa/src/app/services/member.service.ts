@@ -30,11 +30,11 @@ export class MemberService {
     return this.http.put<Member>(`${this.apiUrl}/${member.memberId}`, member);
   }
 
-  getSignedOutBooks(member: Member): Observable<SignedOutBook []> {
+  getSignedOutBooks(member: Member): Observable<SignedOutBook[]> {
     return this.http.get<SignedOutBook[]>(`${this.apiUrl}/${member.memberId}/books/signedOut`);
   }
 
-  getMemberBookHistory(member: Member): Observable<SignedOutBook []> {
+  getMemberBookHistory(member: Member): Observable<SignedOutBook[]> {
     return this.http.get<SignedOutBook[]>(`${this.apiUrl}/${member.memberId}/books/history`);
   }
 }
